@@ -148,7 +148,8 @@
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
       setPersistence,
-      browserLocalPersistence
+      browserLocalPersistence,
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     import {
@@ -159,21 +160,26 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
-      const firebaseConfig = {
-  apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
-  authDomain: "envisionedmktng.firebaseapp.com",
-  projectId: "envisionedmktng",
-  storageBucket: "envisionedmktng.firebasestorage.app",
-  messagingSenderId: "1075132261537",
-  appId: "1:1075132261537:web:2c283114b82d1cee4efce0",
-  measurementId: "G-8XY38GQQ86"
-};
+      apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
+      authDomain: "envisionedmktng.firebaseapp.com",
+      projectId: "envisionedmktng",
+      storageBucket: "envisionedmktng.firebasestorage.app",
+      messagingSenderId: "1075132261537",
+      appId: "1:1075132261537:web:2c283114b82d1cee4efce0",
+      measurementId: "G-8XY38GQQ86"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     await setPersistence(auth, browserLocalPersistence);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "./employee.html";
+      }
+    });
 
     function showMessage(text, type) {
       const box = document.getElementById("messageBox");
@@ -258,7 +264,7 @@
         showMessage("Account created successfully. Redirecting...", "success");
 
         setTimeout(() => {
-          window.location.href = "./employee.html?fresh=" + Date.now();
+          window.location.href = "./employee.html";
         }, 900);
 
       } catch (error) {
@@ -278,7 +284,7 @@
         showMessage("Login successful. Redirecting...", "success");
 
         setTimeout(() => {
-          window.location.href = "./employee.html?fresh=" + Date.now();
+          window.location.href = "./employee.html";
         }, 700);
 
       } catch (error) {
