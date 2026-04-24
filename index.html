@@ -1,114 +1,178 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Review Helper</title>
+  <title>ENVISIONED MARKETING Review Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      padding: 25px;
-      max-width: 500px;
-      margin: auto;
-      background: #f5f7fa;
+      background: #111;
+      color: #111;
+      padding: 20px;
     }
 
-    h1 { font-size: 26px; }
+    .box {
+      max-width: 520px;
+      margin: 35px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    .brand {
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 2px;
+      font-weight: bold;
+      color: #777;
+      margin-bottom: 15px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .businessBox {
+      background: #f4f4f4;
+      padding: 15px;
+      border-radius: 12px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    #businessName {
+      font-size: 22px;
+      font-weight: bold;
+    }
 
     textarea {
       width: 100%;
-      height: 150px;
+      height: 170px;
+      padding: 14px;
       font-size: 16px;
-      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
     button, a {
       display: block;
       width: 100%;
-      box-sizing: border-box;
       padding: 15px;
-      margin-top: 15px;
+      margin-top: 14px;
+      border-radius: 10px;
+      border: none;
+      background: #111;
       color: white;
       text-align: center;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
       text-decoration: none;
+      font-size: 16px;
       font-weight: bold;
+      box-sizing: border-box;
     }
 
-    /* Default button (Generate) */
-    button {
-      background: #111;
-    }
-
-    /* Copy button (Blue) */
-    #copyBtn {
-      background: #007bff;
-      color: white;
-    }
-
-    /* Google button (Green) */
-    #googleReviewLink {
-      background: #28a745;
-      color: white;
+    .secondary {
+      background: #eee;
+      color: #111;
+      border: 1px solid #ddd;
     }
 
     .note {
-      font-size: 14px;
-      color: #555;
-      margin-top: 12px;
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+      margin-top: 15px;
     }
   </style>
 </head>
 
 <body>
 
-  <h1>Leave Us a Google Review</h1>
+  <div class="box">
+    <div class="brand">ENVISIONED MARKETING</div>
 
-  <p>Here’s a suggested review. Please edit it so it matches your real experience.</p>
+    <h1>Leave a Google Review</h1>
 
-  <textarea id="reviewText"></textarea>
+    <div class="businessBox">
+      <p>You were matched with:</p>
+      <div id="businessName">Loading...</div>
+    </div>
 
-  <button onclick="generateReview()">Generate New Review</button>
-  <button id="copyBtn" onclick="copyReview()">Copy Review</button>
+    <p>Here’s a suggested review. Please edit it so it matches your real experience.</p>
 
-  <a id="googleReviewLink" target="_blank">Open Google Review Page</a>
+    <textarea id="reviewText"></textarea>
 
-  <p class="note">
-    Please only leave an honest review based on your real experience.
-  </p>
+    <button onclick="generateReview()">Generate New Review</button>
+    <button onclick="copyReview()">Copy Review</button>
 
-  <script>
+    <a id="googleReviewLink" target="_blank" onclick="trackReviewClick()">Open Google Review Page</a>
 
-    // 🔥 YOUR BUSINESS LIST
+    <button class="secondary" onclick="pickRandomBusiness()">Show Another Company</button>
+
+    <p class="note">
+      Please only leave an honest review for a business you actually visited or received service from.
+    </p>
+  </div>
+
+  <script type="module">
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      increment
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+    // 🔥 REPLACE THIS WITH YOUR REAL FIREBASE CONFIG
+    const firebaseConfig = {
+  apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
+  authDomain: "envisionedmktng.firebaseapp.com",
+  projectId: "envisionedmktng",
+  storageBucket: "envisionedmktng.firebasestorage.app",
+  messagingSenderId: "1075132261537",
+  appId: "1:1075132261537:web:2c283114b82d1cee4efce0",
+  measurementId: "G-8XY38GQQ86"
+};
+
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+
+    // 🔥 ADD YOUR BUSINESSES HERE
     const businesses = [
       {
-        name: "NY BARBER",
-        link: "https://www.google.com/search?client=safari&hl=en-us&q=ny+barbershop+orlando+reviews"
+        id: "business-one",
+        name: "Business One",
+        link: "PASTE GOOGLE REVIEW LINK HERE"
       },
       {
+        id: "business-two",
         name: "Business Two",
         link: "PASTE GOOGLE REVIEW LINK HERE"
       },
       {
+        id: "business-three",
         name: "Business Three",
         link: "PASTE GOOGLE REVIEW LINK HERE"
       }
     ];
 
+
     let currentBusiness = null;
 
-    function random(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const employeeId = urlParams.get("employee");
 
-    // 🔥 PICK RANDOM BUSINESS
-    function pickRandomBusiness() {
-      currentBusiness = random(businesses);
-      document.getElementById("googleReviewLink").href = currentBusiness.link;
-      generateReview();
-    }
 
     const openings = [
       "I had a great experience with",
@@ -116,7 +180,8 @@
       "I had an amazing experience at",
       "I’m very satisfied with",
       "My experience with",
-      "I recently visited"
+      "I recently visited",
+      "I was really impressed with"
     ];
 
     const serviceWords = [
@@ -125,7 +190,8 @@
       "team was extremely helpful",
       "customer service was top tier",
       "experience was smooth and easy",
-      "staff was friendly and welcoming"
+      "staff was friendly and welcoming",
+      "communication was clear"
     ];
 
     const positives = [
@@ -146,23 +212,74 @@
       "Definitely worth it."
     ];
 
-    function generateReview() {
+
+    function random(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+
+    async function updateEmployeeStat(fieldName) {
+      if (!employeeId) return;
+
+      const employeeRef = doc(db, "employees", employeeId);
+      const employeeSnap = await getDoc(employeeRef);
+
+      if (!employeeSnap.exists()) {
+        await setDoc(employeeRef, {
+          uid: employeeId,
+          scans: 0,
+          copiedReviews: 0,
+          reviewClicks: 0,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      await updateDoc(employeeRef, {
+        [fieldName]: increment(1)
+      });
+    }
+
+
+    async function pickRandomBusiness() {
+      currentBusiness = random(businesses);
+
+      document.getElementById("businessName").innerText = currentBusiness.name;
+      document.getElementById("googleReviewLink").href = currentBusiness.link;
+
+      generateReview();
+
+      await updateEmployeeStat("scans");
+    }
+
+
+    window.generateReview = function () {
       if (!currentBusiness) return;
 
       const review = `${random(openings)} ${currentBusiness.name}. Their ${random(serviceWords)} and ${random(positives)}. ${random(endings)}`;
 
       document.getElementById("reviewText").value = review;
-    }
+    };
 
-    function copyReview() {
+
+    window.copyReview = async function () {
       const text = document.getElementById("reviewText");
+
       text.select();
       text.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(text.value);
-      alert("Review copied!");
-    }
 
-    // 🔥 RUN ON LOAD
+      await navigator.clipboard.writeText(text.value);
+
+      await updateEmployeeStat("copiedReviews");
+
+      alert("Review copied!");
+    };
+
+
+    window.trackReviewClick = async function () {
+      await updateEmployeeStat("reviewClicks");
+    };
+
+
     pickRandomBusiness();
 
   </script>
