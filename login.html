@@ -1,40 +1,75 @@
-}
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ENVISIONED MARKETING Login</title>
+  <title>Employee Login | ENVISIONED MARKETING</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       padding: 20px;
       background: #111;
       color: white;
     }
 
     .box {
-      max-width: 400px;
-      margin: auto;
+      max-width: 420px;
+      margin: 50px auto;
       background: white;
       color: black;
-      padding: 20px;
-      border-radius: 12px;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    .brand {
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 2px;
+      font-weight: bold;
+      color: #777;
+      margin-bottom: 15px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
     }
 
     input {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       margin-top: 10px;
       margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      box-sizing: border-box;
     }
 
     button {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background: black;
       color: white;
       border: none;
-      margin-top: 10px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .secondary {
+      background: #eee;
+      color: #111;
+      border: 1px solid #ddd;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -42,27 +77,115 @@
 <body>
 
   <div class="box">
+    <div class="brand">ENVISIONED MARKETING</div>
+
     <h2>Employee Login</h2>
 
-    <input id="name" placeholder="Your Name" />
-    <input id="pin" placeholder="4 Digit PIN" />
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
 
     <button onclick="login()">Login</button>
+    <button class="secondary" onclick="signup()">Create Account</button>
+
+    <p class="note">
+      Employees must create an account or login to access their personal QR dashboard.
+    </p>
   </div>
 
-<script>
-function login() {
-  const name = document.getElementById("name").value;
-  if (!name) {
-    alert("Enter your name");
-    return;
-  }
+  <script type="module">
 
-  localStorage.setItem("employee", name);
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-  window.location.href = "employee.html";
-}
-</script>
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+    // 🔥 REPLACE THIS WITH YOUR REAL FIREBASE CONFIG
+    const firebaseConfig = {
+      apiKey: "PASTE_YOUR_API_KEY_HERE",
+      authDomain: "PASTE_YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "PASTE_YOUR_PROJECT_ID",
+      storageBucket: "PASTE_YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "PASTE_YOUR_SENDER_ID",
+      appId: "PASTE_YOUR_APP_ID"
+    };
+
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+
+    window.signup = async function () {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        alert("Please enter an email and password.");
+        return;
+      }
+
+      if (password.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+      }
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const employeeRef = doc(db, "employees", user.uid);
+        const employeeSnap = await getDoc(employeeRef);
+
+        if (!employeeSnap.exists()) {
+          await setDoc(employeeRef, {
+            uid: user.uid,
+            email: user.email,
+            scans: 0,
+            copiedReviews: 0,
+            reviewClicks: 0,
+            createdAt: new Date().toISOString()
+          });
+        }
+
+        alert("Account created successfully!");
+        window.location.href = "employee.html";
+
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+
+    window.login = async function () {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        alert("Please enter your email and password.");
+        return;
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "employee.html";
+
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+  </script>
 
 </body>
-</html
+</html>
