@@ -1,1 +1,68 @@
-Employees create/login with a name + 4-digit PIN.
+}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ENVISIONED MARKETING Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #111;
+      color: white;
+    }
+
+    .box {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      color: black;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: black;
+      color: white;
+      border: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+    <h2>Employee Login</h2>
+
+    <input id="name" placeholder="Your Name" />
+    <input id="pin" placeholder="4 Digit PIN" />
+
+    <button onclick="login()">Login</button>
+  </div>
+
+<script>
+function login() {
+  const name = document.getElementById("name").value;
+  if (!name) {
+    alert("Enter your name");
+    return;
+  }
+
+  localStorage.setItem("employee", name);
+
+  window.location.href = "employee.html";
+}
+</script>
+
+</body>
+</html
