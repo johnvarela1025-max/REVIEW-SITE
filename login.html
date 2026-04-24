@@ -117,7 +117,7 @@
     <div id="messageBox" class="message"></div>
 
     <p class="note">
-      New employees must tap “Create Account” first. Returning employees tap “Login.” 
+      New employees must tap “Create Account” first. Returning employees tap “Login.”
       Passwords must be at least 6 characters.
     </p>
   </div>
@@ -141,7 +141,8 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-const firebaseConfig = {
+    // 🔥 YOUR FIREBASE CONFIG
+    const firebaseConfig = {
   apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
   authDomain: "envisionedmktng.firebaseapp.com",
   projectId: "envisionedmktng",
@@ -167,24 +168,24 @@ const firebaseConfig = {
 
     function getFriendlyError(errorCode) {
       const messages = {
-        "auth/email-already-in-use": "This email already has an account. Tap Login instead, or tap Reset Password if they forgot it.",
+        "auth/email-already-in-use": "This email already has an account. Tap Login instead, or tap Reset Password.",
         "auth/weak-password": "Password is too short. It must be at least 6 characters.",
         "auth/invalid-email": "This email address is not valid. Please check the spelling.",
         "auth/missing-email": "Please enter an email address.",
         "auth/missing-password": "Please enter a password.",
-        "auth/invalid-credential": "This login did not work. The account may not exist, or the password may be wrong. New employees should tap Create Account first.",
+        "auth/invalid-credential": "Login failed. The account may not exist, or the password may be wrong. New employees should tap Create Account first.",
         "auth/user-not-found": "No account exists with this email. Tap Create Account first.",
         "auth/wrong-password": "Wrong password. Try again or tap Reset Password.",
         "auth/too-many-requests": "Too many attempts. Wait a few minutes, then try again.",
-        "auth/network-request-failed": "Network error. Check your internet connection and try again.",
-        "auth/configuration-not-found": "Firebase login is not fully enabled. Turn on Email/Password in Firebase Authentication."
+        "auth/network-request-failed": "Network error. Check your internet connection.",
+        "auth/configuration-not-found": "Firebase login is not enabled. Turn on Email/Password in Firebase Authentication."
       };
 
       return messages[errorCode] || "Something went wrong: " + errorCode;
     }
 
 
-    function validateEmailAndPassword(email, password, requirePassword = true) {
+    function validate(email, password, requirePassword = true) {
       if (!email) {
         showMessage("Please enter an email address.", "error");
         return false;
@@ -230,7 +231,7 @@ const firebaseConfig = {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
-      if (!validateEmailAndPassword(email, password, true)) return;
+      if (!validate(email, password, true)) return;
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -239,7 +240,7 @@ const firebaseConfig = {
         showMessage("Account created successfully. Redirecting...", "success");
 
         setTimeout(() => {
-          window.location.href = "employee.html";
+          window.location.href = "./employee.html";
         }, 1000);
 
       } catch (error) {
@@ -252,7 +253,7 @@ const firebaseConfig = {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
-      if (!validateEmailAndPassword(email, password, true)) return;
+      if (!validate(email, password, true)) return;
 
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -261,7 +262,7 @@ const firebaseConfig = {
         showMessage("Login successful. Redirecting...", "success");
 
         setTimeout(() => {
-          window.location.href = "employee.html";
+          window.location.href = "./employee.html";
         }, 700);
 
       } catch (error) {
@@ -273,12 +274,11 @@ const firebaseConfig = {
     window.resetPassword = async function () {
       const email = document.getElementById("email").value.trim();
 
-      if (!validateEmailAndPassword(email, "", false)) return;
+      if (!validate(email, "", false)) return;
 
       try {
         await sendPasswordResetEmail(auth, email);
-
-        showMessage("Password reset email sent. Check your inbox or spam folder.", "success");
+        showMessage("Password reset email sent. Check inbox or spam folder.", "success");
 
       } catch (error) {
         showMessage(getFriendlyError(error.code), "error");
