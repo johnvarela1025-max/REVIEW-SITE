@@ -3,124 +3,52 @@
 <head>
   <title>Employee Login | ENVISIONED MARKETING</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <style>
     * { box-sizing: border-box; }
-
     body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
+      margin: 0; min-height: 100vh; font-family: Arial, sans-serif;
       background: radial-gradient(circle at top, #2b2b2b, #050505 65%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 22px;
-      color: #111;
+      display: flex; align-items: center; justify-content: center;
+      padding: 22px; color: #111;
     }
-
     .card {
-      width: 100%;
-      max-width: 430px;
-      background: #fff;
-      border-radius: 26px;
-      padding: 30px;
+      width: 100%; max-width: 430px; background: #fff;
+      border-radius: 26px; padding: 30px;
       box-shadow: 0 24px 70px rgba(0,0,0,0.45);
     }
-
     .brand {
-      text-align: center;
-      font-size: 13px;
-      letter-spacing: 2.5px;
-      font-weight: 800;
-      color: #777;
-      margin-bottom: 10px;
-      text-transform: uppercase;
+      text-align: center; font-size: 13px; letter-spacing: 2.5px;
+      font-weight: 800; color: #777; margin-bottom: 10px;
     }
-
-    h1 {
-      text-align: center;
-      margin: 8px 0 6px;
-      font-size: 30px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 24px;
-      line-height: 1.4;
-    }
-
-    label {
-      font-size: 13px;
-      font-weight: bold;
-      color: #333;
-      display: block;
-      margin-bottom: 7px;
-    }
-
+    h1 { text-align: center; margin: 8px 0 6px; font-size: 30px; }
+    .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 24px; }
+    label { font-size: 13px; font-weight: bold; display: block; margin-bottom: 7px; }
     input {
-      width: 100%;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 14px;
-      border: 1px solid #d5d5d5;
-      font-size: 16px;
-      outline: none;
-      background: white;
+      width: 100%; padding: 15px; margin-bottom: 15px;
+      border-radius: 14px; border: 1px solid #d5d5d5; font-size: 16px;
     }
-
-    input:focus { border-color: #111; }
-
     button {
-      width: 100%;
-      padding: 15px;
-      border-radius: 14px;
-      border: none;
-      font-size: 16px;
-      font-weight: 800;
-      margin-top: 12px;
-      cursor: pointer;
+      width: 100%; padding: 15px; border-radius: 14px; border: none;
+      font-size: 16px; font-weight: 800; margin-top: 12px;
     }
-
     .primary { background: #111; color: white; }
     .secondary { background: #f2f2f2; color: #111; border: 1px solid #ddd; }
     .danger { background: #fff0f0; color: #a00000; border: 1px solid #ffc9c9; }
-
     .message {
-      display: none;
-      margin-top: 18px;
-      padding: 13px;
-      border-radius: 14px;
-      font-size: 14px;
-      text-align: center;
-      line-height: 1.4;
+      display: none; margin-top: 18px; padding: 13px;
+      border-radius: 14px; font-size: 14px; text-align: center;
     }
-
     .error { background: #ffe5e5; color: #9b0000; }
     .success { background: #e8ffe8; color: #006600; }
-
-    .note {
-      text-align: center;
-      color: #777;
-      font-size: 12px;
-      line-height: 1.5;
-      margin-top: 18px;
-    }
+    .note { text-align: center; color: #777; font-size: 12px; margin-top: 18px; }
   </style>
 </head>
 
 <body>
-
   <div class="card">
     <div class="brand">ENVISIONED MARKETING</div>
-
     <h1>Employee Login</h1>
-
-    <p class="subtitle">
-      Access your personal QR code, review stats, and employee dashboard.
-    </p>
+    <p class="subtitle">Access your personal QR code, review stats, and employee dashboard.</p>
 
     <label>Email Address</label>
     <input id="email" type="email" placeholder="employee@email.com" />
@@ -134,30 +62,19 @@
 
     <div id="messageBox" class="message"></div>
 
-    <p class="note">
-      New employees should create an account first. Returning employees should log in.
-    </p>
+    <p class="note">New employees should create an account first. Returning employees should log in.</p>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
     import {
       getAuth,
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
       setPersistence,
-      browserLocalPersistence,
-      onAuthStateChanged
+      browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
@@ -171,15 +88,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
-
     await setPersistence(auth, browserLocalPersistence);
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = "./employee.html";
-      }
-    });
 
     function showMessage(text, type) {
       const box = document.getElementById("messageBox");
@@ -193,16 +102,11 @@
         "auth/email-already-in-use": "This email already has an account. Tap Login instead.",
         "auth/weak-password": "Password must be at least 6 characters.",
         "auth/invalid-email": "Please enter a valid email address.",
-        "auth/missing-email": "Please enter an email address.",
         "auth/missing-password": "Please enter a password.",
-        "auth/invalid-credential": "Login failed. The account may not exist, or the password may be wrong.",
-        "auth/user-not-found": "No account exists with this email. Tap Create Account first.",
-        "auth/wrong-password": "Wrong password. Try again or reset your password.",
-        "auth/too-many-requests": "Too many attempts. Wait a few minutes, then try again.",
-        "auth/network-request-failed": "Network error. Check your internet and try again."
+        "auth/invalid-credential": "Login failed. The email or password is wrong, or the account does not exist.",
+        "auth/too-many-requests": "Too many attempts. Wait a few minutes and try again."
       };
-
-      return messages[code] || "Something went wrong: " + code;
+      return messages[code] || "Error: " + code;
     }
 
     function getInputs() {
@@ -213,60 +117,20 @@
     }
 
     function validate(email, password, requirePassword = true) {
-      if (!email) {
-        showMessage("Please enter an email address.", "error");
-        return false;
-      }
-
-      if (!email.includes("@") || !email.includes(".")) {
-        showMessage("Please enter a valid email address.", "error");
-        return false;
-      }
-
-      if (requirePassword && !password) {
-        showMessage("Please enter a password.", "error");
-        return false;
-      }
-
-      if (requirePassword && password.length < 6) {
-        showMessage("Password must be at least 6 characters.", "error");
-        return false;
-      }
-
+      if (!email) return showMessage("Please enter an email.", "error"), false;
+      if (!email.includes("@")) return showMessage("Please enter a valid email.", "error"), false;
+      if (requirePassword && password.length < 6) return showMessage("Password must be at least 6 characters.", "error"), false;
       return true;
-    }
-
-    async function createEmployeeProfile(user) {
-      const employeeRef = doc(db, "employees", user.uid);
-      const employeeSnap = await getDoc(employeeRef);
-
-      if (!employeeSnap.exists()) {
-        await setDoc(employeeRef, {
-          uid: user.uid,
-          email: user.email,
-          scans: 0,
-          copiedReviews: 0,
-          reviewClicks: 0,
-          createdAt: new Date().toISOString()
-        });
-      }
     }
 
     window.signup = async function () {
       const { email, password } = getInputs();
-
       if (!validate(email, password, true)) return;
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await createEmployeeProfile(userCredential.user);
-
-        showMessage("Account created successfully. Redirecting...", "success");
-
-        setTimeout(() => {
-          window.location.href = "./employee.html";
-        }, 900);
-
+        await createUserWithEmailAndPassword(auth, email, password);
+        showMessage("Account created. Opening dashboard...", "success");
+        window.location.href = "./employee.html";
       } catch (error) {
         showMessage(friendlyError(error.code), "error");
       }
@@ -274,19 +138,12 @@
 
     window.login = async function () {
       const { email, password } = getInputs();
-
       if (!validate(email, password, true)) return;
 
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        await createEmployeeProfile(userCredential.user);
-
-        showMessage("Login successful. Redirecting...", "success");
-
-        setTimeout(() => {
-          window.location.href = "./employee.html";
-        }, 700);
-
+        await signInWithEmailAndPassword(auth, email, password);
+        showMessage("Login successful. Opening dashboard...", "success");
+        window.location.href = "./employee.html";
       } catch (error) {
         showMessage(friendlyError(error.code), "error");
       }
@@ -294,17 +151,15 @@
 
     window.resetPassword = async function () {
       const { email } = getInputs();
-
       if (!validate(email, "", false)) return;
 
       try {
         await sendPasswordResetEmail(auth, email);
-        showMessage("Password reset email sent. Check your inbox or spam folder.", "success");
+        showMessage("Password reset email sent. Check inbox or spam.", "success");
       } catch (error) {
         showMessage(friendlyError(error.code), "error");
       }
     };
   </script>
-
 </body>
 </html>
