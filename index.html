@@ -12,6 +12,8 @@
       background: #111; color: white; text-align: center; border: none;
       border-radius: 8px; font-size: 16px; text-decoration: none;
     }
+    .copy-btn { background: #0b57d0; color: white; }
+    .google-btn { background: #1db954; color: white; }
     .note { font-size: 14px; color: #555; margin-top: 12px; }
   </style>
 </head>
@@ -24,30 +26,40 @@
   <textarea id="reviewText"></textarea>
 
   <button onclick="generateReview()">Generate New Review</button>
-  <button onclick="copyReview()">Copy Review</button>
 
-  <a id="googleReviewLink" target="_blank">Open Google Review Page</a>
+  <button class="copy-btn" onclick="copyReview()">Copy Suggested Review</button>
+
+  <a id="googleReviewLink" class="google-btn" target="_blank" onclick="trackClick()">
+    Open Google Review Page
+  </a>
 
   <p class="note">
     Please only leave an honest review based on your real experience.
   </p>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // 🔥 YOUR BUSINESS LIST (ADD UNLIMITED HERE)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
+      authDomain: "envisionedmktng.firebaseapp.com",
+      projectId: "envisionedmktng",
+      storageBucket: "envisionedmktng.firebasestorage.app",
+      messagingSenderId: "1075132261537",
+      appId: "1:1075132261537:web:2c283114b82d1cee4efce0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const employeeId = params.get("employee");
+
     const businesses = [
-      {
-        name: "Business One",
-        link: "PASTE GOOGLE REVIEW LINK HERE"
-      },
-      {
-        name: "Business Two",
-        link: "PASTE GOOGLE REVIEW LINK HERE"
-      },
-      {
-        name: "Business Three",
-        link: "PASTE GOOGLE REVIEW LINK HERE"
-      }
+      { name: "Business One", link: "PASTE GOOGLE REVIEW LINK HERE" },
+      { name: "Business Two", link: "PASTE GOOGLE REVIEW LINK HERE" },
+      { name: "Business Three", link: "PASTE GOOGLE REVIEW LINK HERE" }
     ];
 
     let currentBusiness = null;
@@ -56,14 +68,23 @@
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // 🔥 PICK RANDOM BUSINESS ON LOAD
+    async function updateStat(field) {
+      if (!employeeId) return;
+
+      try {
+        await updateDoc(doc(db, "employees", employeeId), {
+          [field]: increment(1)
+        });
+      } catch (e) {}
+    }
+
     function pickRandomBusiness() {
       currentBusiness = random(businesses);
       document.getElementById("googleReviewLink").href = currentBusiness.link;
       generateReview();
+      updateStat("scans");
     }
 
-    // 🔥 Unlimited review builder parts
     const openings = [
       "I had a great experience with",
       "I really enjoyed my visit to",
@@ -100,25 +121,39 @@
       "Definitely worth it."
     ];
 
-    function generateReview() {
+    window.generateReview = function () {
       if (!currentBusiness) return;
 
       const review = `${random(openings)} ${currentBusiness.name}. Their ${random(serviceWords)} and ${random(positives)}. ${random(endings)}`;
-
       document.getElementById("reviewText").value = review;
-    }
+    };
 
-    function copyReview() {
-      const text = document.getElementById("reviewText");
-      text.select();
-      text.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(text.value);
-      alert("Review copied!");
-    }
+    // 🔥 FIXED INSTANT COPY
+    window.copyReview = async function () {
+      const text = document.getElementById("reviewText").value;
 
-    // 🔥 RUN ON PAGE LOAD (QR SCAN)
+      try {
+        await navigator.clipboard.writeText(text);
+
+        const btn = document.querySelector(".copy-btn");
+        btn.innerText = "Copied ✓";
+
+        setTimeout(() => {
+          btn.innerText = "Copy Suggested Review";
+        }, 1500);
+
+        await updateStat("copiedReviews");
+
+      } catch (err) {
+        alert("Copy failed. Try again.");
+      }
+    };
+
+    window.trackClick = async function () {
+      await updateStat("reviewClicks");
+    };
+
     pickRandomBusiness();
-
   </script>
 
 </body>
