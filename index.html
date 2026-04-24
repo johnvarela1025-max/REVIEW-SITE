@@ -1,138 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Employee Login | ENVISIONED MARKETING</title>
+  <title>ENVISIONED MARKETING Review Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #111;
-      color: white;
-    }
-
-    .box {
-      max-width: 420px;
-      margin: 50px auto;
-      background: white;
-      color: black;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-    }
-
-    .brand {
-      text-align: center;
-      font-size: 13px;
-      letter-spacing: 2px;
-      font-weight: bold;
-      color: #777;
-      margin-bottom: 15px;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      background: black;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      margin-top: 12px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-
-    .secondary {
-      background: #eee;
-      color: #111;
-      border: 1px solid #ddd;
-    }
-
-    .message {
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 10px;
-      display: none;
-      font-size: 14px;
-      text-align: center;
-    }
-
-    .error {
-      background: #ffe5e5;
-      color: #9b0000;
-    }
-
-    .success {
-      background: #e8ffe8;
-      color: #006600;
-    }
-
-    .note {
-      font-size: 13px;
-      color: #777;
-      text-align: center;
-      margin-top: 15px;
-    }
-  </style>
 </head>
-
 <body>
 
-  <div class="box">
-    <div class="brand">ENVISIONED MARKETING</div>
+<h1>Leave a Google Review</h1>
 
-    <h2>Employee Login</h2>
+<p>You were matched with:</p>
+<h2 id="businessName">Loading...</h2>
 
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password - minimum 6 characters" />
+<textarea id="reviewText"></textarea>
 
-    <button onclick="login()">Login</button>
-    <button class="secondary" onclick="signup()">Create Account</button>
+<button onclick="generateReview()">Generate Review</button>
+<button onclick="copyReview()">Copy Review</button>
+<a id="googleReviewLink" target="_blank" onclick="trackClick()">Open Google Review Page</a>
 
-    <div id="messageBox" class="message"></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  updateDoc,
+  increment
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    <p class="note">
-      New employees must tap “Create Account” first. Returning employees tap “Login.”
-    </p>
-  </div>
-
-  <script type="module">
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-
-    // 🔥 REPLACE THIS WITH YOUR REAL FIREBASE CONFIG
-    const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
   authDomain: "envisionedmktng.firebaseapp.com",
   projectId: "envisionedmktng",
@@ -142,121 +36,57 @@
   measurementId: "G-8XY38GQQ86"
 };
 
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const params = new URLSearchParams(window.location.search);
+const employeeId = params.get("employee");
 
+const businesses = [
+  {
+    name: "Business One",
+    link: "PASTE GOOGLE REVIEW LINK HERE"
+  },
+  {
+    name: "Business Two",
+    link: "PASTE GOOGLE REVIEW LINK HERE"
+  }
+];
 
-    function showMessage(text, type) {
-      const box = document.getElementById("messageBox");
-      box.innerText = text;
-      box.className = "message " + type;
-      box.style.display = "block";
-    }
+let currentBusiness = businesses[Math.floor(Math.random() * businesses.length)];
 
+document.getElementById("businessName").innerText = currentBusiness.name;
+document.getElementById("googleReviewLink").href = currentBusiness.link;
 
-    function getFriendlyError(errorCode) {
-      if (errorCode === "auth/invalid-credential") {
-        return "This account does not exist yet or the password is wrong. If this is your first time, tap Create Account.";
-      }
+async function updateStat(field) {
+  if (!employeeId) return;
 
-      if (errorCode === "auth/email-already-in-use") {
-        return "This email already has an account. Tap Login instead.";
-      }
+  const ref = doc(db, "employees", employeeId);
+  await updateDoc(ref, {
+    [field]: increment(1)
+  });
+}
 
-      if (errorCode === "auth/weak-password") {
-        return "Password must be at least 6 characters.";
-      }
+window.generateReview = function () {
+  document.getElementById("reviewText").value =
+    `I had a great experience with ${currentBusiness.name}. The service was professional, friendly, and smooth from start to finish.`;
+};
 
-      if (errorCode === "auth/invalid-email") {
-        return "Please enter a valid email address.";
-      }
+window.copyReview = async function () {
+  const text = document.getElementById("reviewText");
+  text.select();
+  await navigator.clipboard.writeText(text.value);
+  await updateStat("copiedReviews");
+  alert("Review copied!");
+};
 
-      if (errorCode === "auth/missing-password") {
-        return "Please enter a password.";
-      }
+window.trackClick = async function () {
+  await updateStat("reviewClicks");
+};
 
-      if (errorCode === "auth/configuration-not-found") {
-        return "Firebase login is not fully turned on. Enable Email/Password in Firebase Authentication.";
-      }
-
-      return "Something went wrong: " + errorCode;
-    }
-
-
-    async function createEmployeeProfile(user) {
-      const employeeRef = doc(db, "employees", user.uid);
-      const employeeSnap = await getDoc(employeeRef);
-
-      if (!employeeSnap.exists()) {
-        await setDoc(employeeRef, {
-          uid: user.uid,
-          email: user.email,
-          scans: 0,
-          copiedReviews: 0,
-          reviewClicks: 0,
-          createdAt: new Date().toISOString()
-        });
-      }
-    }
-
-
-    window.signup = async function () {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (!email || !password) {
-        showMessage("Please enter both email and password.", "error");
-        return;
-      }
-
-      if (password.length < 6) {
-        showMessage("Password must be at least 6 characters.", "error");
-        return;
-      }
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await createEmployeeProfile(userCredential.user);
-
-        showMessage("Account created successfully. Redirecting...", "success");
-
-        setTimeout(() => {
-          window.location.href = "employee.html";
-        }, 1000);
-
-      } catch (error) {
-        showMessage(getFriendlyError(error.code), "error");
-      }
-    };
-
-
-    window.login = async function () {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      if (!email || !password) {
-        showMessage("Please enter your email and password.", "error");
-        return;
-      }
-
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        await createEmployeeProfile(userCredential.user);
-
-        showMessage("Login successful. Redirecting...", "success");
-
-        setTimeout(() => {
-          window.location.href = "employee.html";
-        }, 700);
-
-      } catch (error) {
-        showMessage(getFriendlyError(error.code), "error");
-      }
-    };
-
-  </script>
+await updateStat("scans");
+generateReview();
+</script>
 
 </body>
 </html>
