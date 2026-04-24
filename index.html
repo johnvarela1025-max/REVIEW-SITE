@@ -3,18 +3,65 @@
 <head>
   <title>Review Helper</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    body { font-family: Arial, sans-serif; padding: 25px; max-width: 500px; margin: auto; }
-    h1 { font-size: 26px; }
-    textarea { width: 100%; height: 150px; font-size: 16px; padding: 12px; }
-    button, a {
-      display: block; width: 100%; padding: 15px; margin-top: 15px;
-      background: #111; color: white; text-align: center; border: none;
-      border-radius: 8px; font-size: 16px; text-decoration: none;
+    body {
+      font-family: Arial, sans-serif;
+      padding: 25px;
+      max-width: 500px;
+      margin: auto;
+      background: #f5f7fa;
     }
-    .note { font-size: 14px; color: #555; margin-top: 12px; }
+
+    h1 { font-size: 26px; }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      font-size: 16px;
+      padding: 12px;
+    }
+
+    button, a {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 15px;
+      margin-top: 15px;
+      color: white;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    /* Default button (Generate) */
+    button {
+      background: #111;
+    }
+
+    /* Copy button (Blue) */
+    #copyBtn {
+      background: #007bff;
+      color: white;
+    }
+
+    /* Google button (Green) */
+    #googleReviewLink {
+      background: #28a745;
+      color: white;
+    }
+
+    .note {
+      font-size: 14px;
+      color: #555;
+      margin-top: 12px;
+    }
   </style>
 </head>
+
 <body>
 
   <h1>Leave Us a Google Review</h1>
@@ -24,7 +71,7 @@
   <textarea id="reviewText"></textarea>
 
   <button onclick="generateReview()">Generate New Review</button>
-  <button onclick="copyReview()">Copy Review</button>
+  <button id="copyBtn" onclick="copyReview()">Copy Review</button>
 
   <a id="googleReviewLink" target="_blank">Open Google Review Page</a>
 
@@ -34,11 +81,11 @@
 
   <script>
 
-    // 🔥 YOUR BUSINESS LIST (ADD UNLIMITED HERE)
+    // 🔥 YOUR BUSINESS LIST
     const businesses = [
       {
         name: "NY BARBER",
-        link: "https://www.google.com/search?client=safari&hs=n4Q&sca_esv=33d040cb389eca3f&hl=en-us&cs=0&sxsrf=ANbL-n4xHAWZjlwN8ALPe2AWWDPVDqyF3A:1777060322175&q=ny+barbershop+orlando+reviews&uds=ALYpb_m3vyJS1PwS0TOHbHKfAsb0sWc9STYf_k24XYpoJEo_H7VokWjPDCDTFOgcjKpi5chx4J-f5Bz6MDWI7OH_ZxyNpkwsDYuYgEkHGw06MWTGOVZ7jimurVbFdgtF5rY9ksse_LJFT1HvaJ4q3J9X5BZRY-qV7V6U6Y0EvRJlwK9BtsYbLueeIoznJRvdrTCZ8QuzKp71FopON8PYbeXibGZkdaM5Qi592UUuij5zYwh0mSl21OP_jV_FNq48s5ZgTBjNOPTpguTG5zSJea7oFwkqpuIW8grXHuC0RY_bmR6_UiJKwmazZeM1CBfbXrpgJgqc6iuPGC71XaXKH65Q0kR_rrSA7f91tFiRxMRql4g2ocgfdAxBajnsgUJRZuDSYXmdVIN5Npe3GwVnMnttJUurZ7I-JBJBEu9YY9ZnZDIha6Boji0OiJY8jitu3MpqyqfrYKjCEoecC1qDvpc1rA6JvvDv6A&si=AL3DRZHrmvnFAVQPOO2Bzhf8AX9KZZ6raUI_dT7DG_z0kV2_x0sjV3y0wPwTAC950EJzZ5pUzWK4H1arJVc3-ZJE050l6MjWGymqjlY8oybCcClwP8TpYib6v1getmpa4dD5-kPpNNgmWbagV23iFU96kQZ9h-THxw%3D%3D&sa=X&ved=2ahUKEwitqf3JoYeUAxWKRTABHSFuEDgQk8gLegQIGhAB&ictx=1&biw=402&bih=754&dpr=3"
+        link: "https://www.google.com/search?client=safari&hl=en-us&q=ny+barbershop+orlando+reviews"
       },
       {
         name: "Business Two",
@@ -56,14 +103,13 @@
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // 🔥 PICK RANDOM BUSINESS ON LOAD
+    // 🔥 PICK RANDOM BUSINESS
     function pickRandomBusiness() {
       currentBusiness = random(businesses);
       document.getElementById("googleReviewLink").href = currentBusiness.link;
       generateReview();
     }
 
-    // 🔥 Unlimited review builder parts
     const openings = [
       "I had a great experience with",
       "I really enjoyed my visit to",
@@ -116,7 +162,7 @@
       alert("Review copied!");
     }
 
-    // 🔥 RUN ON PAGE LOAD (QR SCAN)
+    // 🔥 RUN ON LOAD
     pickRandomBusiness();
 
   </script>
