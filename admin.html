@@ -5,198 +5,227 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f6;
-      margin: 0;
-      color: #111;
-    }
-
-    header {
-      background: #111;
-      color: white;
-      padding: 22px;
-    }
-
-    main {
-      max-width: 900px;
-      margin: auto;
-      padding: 22px;
-    }
-
-    .card {
-      background: white;
-      padding: 22px;
-      border-radius: 18px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.08);
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    button,
-    a.btn {
-      background: #111;
-      color: white;
-      border: 0;
-      padding: 14px;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      margin-top: 12px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 18px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    th {
-      background: #111;
-      color: white;
-    }
+    body { font-family: Arial, sans-serif; background:#f5f5f6; margin:0; color:#111; }
+    header { background:#111; color:white; padding:22px; }
+    main { max-width:1000px; margin:auto; padding:22px; }
+    .card { background:white; padding:22px; border-radius:18px; box-shadow:0 10px 25px rgba(0,0,0,.08); margin-bottom:20px; }
+    input { width:100%; padding:14px; margin-top:10px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box; }
+    button, a.btn { background:#111; color:white; border:0; padding:12px 14px; border-radius:10px; font-weight:bold; cursor:pointer; text-decoration:none; display:inline-block; margin-top:12px; }
+    .danger { background:#b00020; }
+    .gray { background:#777; }
+    .green { background:#1db954; }
+    table { width:100%; border-collapse:collapse; background:white; border-radius:18px; overflow:hidden; }
+    th, td { padding:12px; border-bottom:1px solid #eee; text-align:left; font-size:14px; vertical-align:top; }
+    th { background:#111; color:white; }
+    .actions button { margin-right:6px; margin-top:0; }
+    .small { font-size:12px; color:#666; word-break:break-all; }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <h1>Manage Businesses</h1>
-    <p>Add or update review clients</p>
-  </header>
+<header>
+  <h1>Manage Businesses</h1>
+  <p>Add, edit, or delete review clients</p>
+</header>
 
-  <main>
+<main>
 
-    <div class="card">
-      <h2>Add Business</h2>
+  <div class="card">
+    <h2 id="formTitle">Add Business</h2>
 
-      <input id="name" placeholder="Business name" />
-      <input id="industry" placeholder="Industry, ex: cleaning company" />
-      <input id="reviewLink" placeholder="Google review link" />
+    <input id="editingId" type="hidden" />
 
-      <button onclick="saveBusiness()">Save Business</button>
-      <a class="btn" href="dashboard.html">Back to Dashboard</a>
-    </div>
+    <input id="name" placeholder="Business name" />
+    <input id="industry" placeholder="Industry, ex: cleaning company" />
+    <input id="reviewLink" placeholder="Google review link — must start with https://" />
 
-    <div class="card">
-      <h2>Businesses</h2>
+    <button id="saveBtn" class="green" onclick="saveBusiness()">Save Business</button>
+    <button id="cancelBtn" class="gray" onclick="cancelEdit()" style="display:none;">Cancel Edit</button>
+    <a class="btn" href="dashboard.html">Back to Dashboard</a>
+  </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Business</th>
-            <th>Industry</th>
-            <th>Status</th>
-            <th>Review Link</th>
-          </tr>
-        </thead>
+  <div class="card">
+    <h2>Businesses</h2>
 
-        <tbody id="businessBody"></tbody>
-      </table>
-    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Business</th>
+          <th>Industry</th>
+          <th>Status</th>
+          <th>Review Link</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
 
-  </main>
+      <tbody id="businessBody"></tbody>
+    </table>
+  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+</main>
 
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
-      authDomain: "envisionedmktng.firebaseapp.com",
-      projectId: "envisionedmktng",
-      storageBucket: "envisionedmktng.firebasestorage.app",
-      messagingSenderId: "1075132261537",
-      appId: "1:1075132261537:web:2c283114b82d1cee4efce0"
-    };
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    doc,
+    setDoc,
+    deleteDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
+    authDomain: "envisionedmktng.firebaseapp.com",
+    projectId: "envisionedmktng",
+    storageBucket: "envisionedmktng.firebasestorage.app",
+    messagingSenderId: "1075132261537",
+    appId: "1:1075132261537:web:2c283114b82d1cee4efce0"
+  };
 
-    function slugify(text) {
-      return String(text)
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let businessRows = [];
+
+  function slugify(text) {
+    return String(text)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  }
+
+  function clearForm() {
+    document.getElementById("editingId").value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("industry").value = "";
+    document.getElementById("reviewLink").value = "";
+    document.getElementById("formTitle").innerText = "Add Business";
+    document.getElementById("saveBtn").innerText = "Save Business";
+    document.getElementById("cancelBtn").style.display = "none";
+  }
+
+  window.cancelEdit = function () {
+    clearForm();
+  };
+
+  window.saveBusiness = async function () {
+    const editingId = document.getElementById("editingId").value;
+    const name = document.getElementById("name").value.trim();
+    const industry = document.getElementById("industry").value.trim() || "default";
+    const reviewLink = document.getElementById("reviewLink").value.trim();
+
+    if (!name || !reviewLink) {
+      alert("Add a business name and Google review link.");
+      return;
     }
 
-    window.saveBusiness = async function () {
-      const name = document.getElementById("name").value.trim();
-      const industry = document.getElementById("industry").value.trim() || "default";
-      const reviewLink = document.getElementById("reviewLink").value.trim();
+    if (!reviewLink.startsWith("https://")) {
+      alert("The Google review link must start with https://");
+      return;
+    }
 
-      if (!name || !reviewLink) {
-        alert("Add a business name and Google review link.");
-        return;
-      }
+    const id = editingId || slugify(name);
 
-      const id = slugify(name);
+    await setDoc(doc(db, "businesses", id), {
+      name,
+      industry,
+      reviewLink,
+      active: true,
+      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp()
+    }, { merge: true });
 
-      await setDoc(doc(db, "businesses", id), {
-        name: name,
-        industry: industry,
-        reviewLink: reviewLink,
-        active: true,
-        createdAt: serverTimestamp()
-      }, { merge: true });
+    clearForm();
+    await loadBusinesses();
 
-      document.getElementById("name").value = "";
-      document.getElementById("industry").value = "";
-      document.getElementById("reviewLink").value = "";
+    alert(editingId ? "Business updated." : "Business saved.");
+  };
 
-      await loadBusinesses();
+  window.editBusiness = function (id) {
+    const business = businessRows.find(b => b.id === id);
+    if (!business) return;
 
-      alert("Business saved.");
-    };
+    document.getElementById("editingId").value = business.id;
+    document.getElementById("name").value = business.name || "";
+    document.getElementById("industry").value = business.industry || "";
+    document.getElementById("reviewLink").value = business.reviewLink || "";
 
-    window.loadBusinesses = async function () {
-      const snap = await getDocs(collection(db, "businesses"));
+    document.getElementById("formTitle").innerText = "Edit Business";
+    document.getElementById("saveBtn").innerText = "Update Business";
+    document.getElementById("cancelBtn").style.display = "inline-block";
 
-      const rows = snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-      document.getElementById("businessBody").innerHTML = rows.map(b => `
+  window.deleteBusiness = async function (id) {
+    const business = businessRows.find(b => b.id === id);
+    const name = business?.name || id;
+
+    const confirmed = confirm("Delete this business?\n\n" + name);
+
+    if (!confirmed) return;
+
+    await deleteDoc(doc(db, "businesses", id));
+
+    await loadBusinesses();
+
+    alert("Business deleted.");
+  };
+
+  window.toggleBusiness = async function (id, currentActive) {
+    await setDoc(doc(db, "businesses", id), {
+      active: !currentActive,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    await loadBusinesses();
+  };
+
+  window.loadBusinesses = async function () {
+    const snap = await getDocs(collection(db, "businesses"));
+
+    businessRows = snap.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }));
+
+    businessRows.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+
+    document.getElementById("businessBody").innerHTML = businessRows.map(b => {
+      const active = b.active !== false;
+
+      return `
         <tr>
-          <td>${b.name || ""}</td>
+          <td>
+            <strong>${b.name || ""}</strong>
+            <div class="small">ID: ${b.id}</div>
+          </td>
           <td>${b.industry || ""}</td>
-          <td>${b.active === false ? "Inactive" : "Active"}</td>
-          <td><a href="${b.reviewLink}" target="_blank">Open</a></td>
+          <td>${active ? "Active" : "Inactive"}</td>
+          <td>
+            <a href="${b.reviewLink || "#"}" target="_blank">Open</a>
+            <div class="small">${b.reviewLink || ""}</div>
+          </td>
+          <td class="actions">
+            <button onclick="editBusiness('${b.id}')">Edit</button>
+            <button class="gray" onclick="toggleBusiness('${b.id}', ${active})">
+              ${active ? "Disable" : "Enable"}
+            </button>
+            <button class="danger" onclick="deleteBusiness('${b.id}')">Delete</button>
+          </td>
         </tr>
-      `).join("");
-    };
+      `;
+    }).join("") || `<tr><td colspan="5">No businesses found.</td></tr>`;
+  };
 
-    loadBusinesses();
-  </script>
+  loadBusinesses();
+</script>
 
 </body>
 </html>
