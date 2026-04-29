@@ -121,30 +121,45 @@
 
     async function loadBusiness() {
       try {
-        if (!businessIdFromUrl) {
-          document.getElementById("businessName").innerText = "Missing Business ID";
-          document.getElementById("reviewText").value = "This QR code is missing a business ID. Add &business=your-business-name to the link.";
+        // If a business ID is in the URL, load that exact business.
+        if (businessIdFromUrl) {
+          const docRef = await db.collection("businesses").doc(businessIdFromUrl).get();
+
+          if (!docRef.exists) {
+            document.getElementById("businessName").innerText = "Business Not Found";
+            document.getElementById("reviewText").value = "No business found for: " + businessIdFromUrl;
+            return;
+          }
+
+          currentBusiness = {
+            id: docRef.id,
+            ...docRef.data()
+          };
+
+          if (!currentBusiness.reviewLink) {
+            document.getElementById("businessName").innerText = currentBusiness.name || "Missing Review Link";
+            document.getElementById("reviewText").value = "This business is missing a Google review link.";
+            return;
+          }
+
+          startReviewPage();
           return;
         }
 
-        const docRef = await db.collection("businesses").doc(businessIdFromUrl).get();
+        // If no business ID is in the URL, randomly pick one saved business.
+        const snapshot = await db.collection("businesses").get();
 
-        if (!docRef.exists) {
-          document.getElementById("businessName").innerText = "Business Not Found";
-          document.getElementById("reviewText").value = "No business found for: " + businessIdFromUrl;
+        const businesses = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(b => b.active !== false && b.reviewLink);
+
+        if (!businesses.length) {
+          document.getElementById("businessName").innerText = "No Businesses Found";
+          document.getElementById("reviewText").value = "Add businesses in admin.html first.";
           return;
         }
 
-        currentBusiness = {
-          id: docRef.id,
-          ...docRef.data()
-        };
-
-        if (!currentBusiness.reviewLink) {
-          document.getElementById("businessName").innerText = currentBusiness.name || "Missing Review Link";
-          document.getElementById("reviewText").value = "This business is missing a Google review link.";
-          return;
-        }
+        currentBusiness = random(businesses);
 
         startReviewPage();
 
