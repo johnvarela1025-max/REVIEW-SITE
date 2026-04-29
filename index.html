@@ -75,6 +75,24 @@
         .replace(/(^-|-$)/g, "");
     }
 
+    function getTodayDate() {
+      const now = new Date();
+      return now.toISOString().split("T")[0];
+    }
+
+    function getMonthKey() {
+      const now = new Date();
+      return now.toISOString().slice(0, 7);
+    }
+
+    function getWeekKey() {
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), 0, 1);
+      const pastDays = Math.floor((now - firstDay) / 86400000);
+      const weekNumber = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+      return now.getFullYear() + "-W" + weekNumber;
+    }
+
     const reviewStyles = {
       "cleaning company": {
         openings: [
@@ -121,7 +139,6 @@
 
     async function loadBusiness() {
       try {
-        // If a business ID is in the URL, load that exact business.
         if (businessIdFromUrl) {
           const docRef = await db.collection("businesses").doc(businessIdFromUrl).get();
 
@@ -146,7 +163,6 @@
           return;
         }
 
-        // If no business ID is in the URL, randomly pick one saved business.
         const snapshot = await db.collection("businesses").get();
 
         const businesses = snapshot.docs
@@ -160,12 +176,33 @@
         }
 
         currentBusiness = random(businesses);
-
         startReviewPage();
 
       } catch (error) {
         document.getElementById("businessName").innerText = "Firebase Error";
         document.getElementById("reviewText").value = error.message;
+      }
+    }
+
+    async function logActivity(type) {
+      if (!currentBusiness) return;
+
+      const businessId = currentBusiness.id || slugify(currentBusiness.name);
+
+      try {
+        await db.collection("activityLogs").add({
+          type: type,
+          employeeId: employeeId,
+          businessId: businessId,
+          businessName: currentBusiness.name,
+          industry: currentBusiness.industry || "default",
+          date: getTodayDate(),
+          week: getWeekKey(),
+          month: getMonthKey(),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch (error) {
+        console.log("Activity log error:", error.message);
       }
     }
 
@@ -192,12 +229,14 @@
 
     async function trackScan() {
       await updateStat("scans");
+      await logActivity("scan");
 
       const businessId = currentBusiness.id || slugify(currentBusiness.name);
-      const uniqueKey = "unique_" + employeeId + "_" + businessId;
+      const uniqueKey = "unique_" + employeeId + "_" + businessId + "_" + getTodayDate();
 
       if (!localStorage.getItem(uniqueKey)) {
         await updateStat("uniqueScans");
+        await logActivity("uniqueScan");
         localStorage.setItem(uniqueKey, "true");
       }
     }
@@ -231,6 +270,7 @@
         }, 1500);
 
         await updateStat("copiedReviews");
+        await logActivity("copy");
 
       } catch (error) {
         alert("Copy failed. Hold down on the text and copy manually.");
@@ -243,6 +283,7 @@
       if (!currentBusiness || !currentBusiness.reviewLink) return;
 
       await updateStat("reviewClicks");
+      await logActivity("googleClick");
 
       window.open(currentBusiness.reviewLink, "_blank");
     }
