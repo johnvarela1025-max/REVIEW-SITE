@@ -126,146 +126,55 @@
     <p class="small" id="employeeTag"></p>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      setDoc,
-      increment,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
-      authDomain: "envisionedmktng.firebaseapp.com",
-      projectId: "envisionedmktng",
-      storageBucket: "envisionedmktng.firebasestorage.app",
-      messagingSenderId: "1075132261537",
-      appId: "1:1075132261537:web:2c283114b82d1cee4efce0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
+  <script>
     const params = new URLSearchParams(window.location.search);
     const employeeId = params.get("employee") || "default";
 
     document.getElementById("employeeTag").innerText = "Tracking ID: " + employeeId;
 
-    let businesses = [];
-    let currentBusiness = null;
-
-    const backupBusinesses = [
+    const businesses = [
       {
-        id: "wholesome-ocala",
         name: "Wholesome House Cleaning of Ocala",
         industry: "cleaning company",
-        reviewLink: "https://www.google.com/search?q=Wholesome+House+Cleaning+of+Ocala+reviews"
+        link: "https://www.google.com/search?q=Wholesome+House+Cleaning+of+Ocala+reviews"
       },
       {
-        id: "wholesome-sarasota",
         name: "Wholesome House Cleaning of Sarasota",
         industry: "cleaning company",
-        reviewLink: "https://share.google/rqniZWtrmm7sigLfW"
+        link: "https://www.google.com/search?q=Wholesome+House+Cleaning+of+Sarasota+reviews"
       },
       {
-        id: "wholesome-lakewood-ranch",
         name: "Wholesome House Cleaning of Lakewood Ranch",
         industry: "cleaning company",
-        reviewLink: "https://share.google/c1j5c1WN72qeIOAWC"
+        link: "https://www.google.com/search?q=Wholesome+House+Cleaning+of+Lakewood+Ranch+reviews"
       },
       {
-        id: "wholesome-bradenton",
         name: "Wholesome House Cleaning of Bradenton",
         industry: "cleaning company",
-        reviewLink: "https://www.google.com/search?q=Wholesome+House+Cleaning+of+Bradenton+reviews"
+        link: "https://www.google.com/search?q=Wholesome+House+Cleaning+of+Bradenton+reviews"
       }
     ];
+
+    let currentBusiness = null;
 
     function random(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function slugify(text) {
-      return String(text)
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-    }
-
-    async function loadBusinesses() {
-      try {
-        const snap = await getDocs(collection(db, "businesses"));
-
-        businesses = snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .filter(b => b.active !== false && b.reviewLink);
-
-      } catch (e) {
-        console.log("Could not load businesses:", e.message);
-      }
-
-      if (!businesses.length) {
-        businesses = backupBusinesses;
-      }
-    }
-
-    async function updateStat(type) {
-      if (!currentBusiness) return;
-
-      const businessId = currentBusiness.id || slugify(currentBusiness.name);
-      const statId = `${employeeId}_${businessId}`;
-
-      try {
-        await setDoc(doc(db, "stats", statId), {
-          employeeId: employeeId,
-          businessId: businessId,
-          businessName: currentBusiness.name,
-          industry: currentBusiness.industry || "general",
-          [type]: increment(1),
-          lastActivity: serverTimestamp()
-        }, { merge: true });
-
-        await setDoc(doc(db, "employees", employeeId), {
-          employeeId: employeeId,
-          lastActivity: serverTimestamp()
-        }, { merge: true });
-
-      } catch (e) {
-        console.log("Tracking error:", e.message);
-      }
-    }
-
-    async function trackScan() {
-      await updateStat("scans");
-
-      const businessId = currentBusiness.id || slugify(currentBusiness.name);
-      const uniqueKey = `unique_${employeeId}_${businessId}`;
-
-      if (!localStorage.getItem(uniqueKey)) {
-        await updateStat("uniqueScans");
-        localStorage.setItem(uniqueKey, "true");
-      }
-    }
-
     const reviewStyles = {
       "cleaning company": {
         openings: [
-          "Thank you so much for the great work",
           "I had a great experience with",
           "I was really happy with the service from",
+          "Thank you so much for the great work from",
           "My experience with",
           "I recently used",
           "I am so amazed by"
         ],
         details: [
           "the team was professional, detailed, and left everything looking fresh",
-          "the service was thorough, the team was friendly, and the results were excellent",
-          "everything was handled with care, and the space looked much better afterward",
+          "the service was thorough and the results were amazing",
+          "everything was handled with care and looked great afterward",
           "they made the whole process simple and the results were exactly what I needed"
         ],
         endings: [
@@ -274,78 +183,84 @@
           "Great service from start to finish.",
           "I appreciate the care they put into their work."
         ]
-      },
-
-      default: {
-        openings: [
-          "I had a great experience with",
-          "I really appreciated the service from",
-          "My experience with",
-          "I recently worked with"
-        ],
-        details: [
-          "the team was professional, helpful, and made everything easy",
-          "the service was smooth, the staff was friendly, and everything was handled well",
-          "they were easy to work with, professional, and made the process simple"
-        ],
-        endings: [
-          "I would definitely recommend them.",
-          "I’d gladly use them again.",
-          "Great experience overall."
-        ]
       }
     };
 
-    window.generateReview = function () {
+    function saveLocalStat(type) {
+      const key = "reviewStats_" + employeeId;
+      const stats = JSON.parse(localStorage.getItem(key)) || {
+        scans: 0,
+        uniqueScans: 0,
+        copiedReviews: 0,
+        reviewClicks: 0
+      };
+
+      stats[type] = (stats[type] || 0) + 1;
+      localStorage.setItem(key, JSON.stringify(stats));
+    }
+
+    function trackScan() {
+      saveLocalStat("scans");
+
+      const uniqueKey = "uniqueScan_" + employeeId;
+
+      if (!localStorage.getItem(uniqueKey)) {
+        saveLocalStat("uniqueScans");
+        localStorage.setItem(uniqueKey, "true");
+      }
+    }
+
+    function generateReview() {
       if (!currentBusiness) return;
 
-      const style = reviewStyles[currentBusiness.industry] || reviewStyles.default;
+      const style = reviewStyles[currentBusiness.industry];
 
-      const review = `${random(style.openings)} ${currentBusiness.name}. ${random(style.details)}. ${random(style.endings)}`;
+      const review =
+        random(style.openings) + " " +
+        currentBusiness.name + ". " +
+        random(style.details) + ". " +
+        random(style.endings);
 
       document.getElementById("reviewText").value = review;
-    };
+    }
 
-    window.copyReview = async function () {
+    function copyReview() {
       const text = document.getElementById("reviewText").value;
 
-      try {
-        await navigator.clipboard.writeText(text);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function () {
+          const btn = document.querySelector(".copy-btn");
+          btn.innerText = "Copied ✓";
 
-        const btn = document.querySelector(".copy-btn");
-        btn.innerText = "Copied ✓";
+          setTimeout(function () {
+            btn.innerText = "Copy Suggested Review";
+          }, 1500);
 
-        setTimeout(() => {
-          btn.innerText = "Copy Suggested Review";
-        }, 1500);
-
-        await updateStat("copiedReviews");
-
-      } catch (e) {
-        alert("Copy failed. Hold down on the text and copy manually.");
+          saveLocalStat("copiedReviews");
+        });
+      } else {
+        alert("Hold down on the review text and copy it manually.");
       }
-    };
+    }
 
-    window.openGoogleReview = async function (event) {
+    function openGoogleReview(event) {
       event.preventDefault();
 
-      const link = document.getElementById("googleReviewLink").href;
+      if (!currentBusiness || !currentBusiness.link) return;
 
-      await updateStat("reviewClicks");
+      saveLocalStat("reviewClicks");
 
-      window.open(link, "_blank");
-    };
+      window.open(currentBusiness.link, "_blank");
+    }
 
-    async function start() {
-      await loadBusinesses();
-
+    function start() {
       currentBusiness = random(businesses);
 
       document.getElementById("businessName").innerText = currentBusiness.name;
-      document.getElementById("googleReviewLink").href = currentBusiness.reviewLink || currentBusiness.link;
+      document.getElementById("googleReviewLink").href = currentBusiness.link;
 
       generateReview();
-      await trackScan();
+      trackScan();
     }
 
     start();
