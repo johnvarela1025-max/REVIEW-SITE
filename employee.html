@@ -117,25 +117,11 @@
     </p>
   </div>
 
-  <script type="module">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      collection,
-      getDocs
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
       authDomain: "envisionedmktng.firebaseapp.com",
@@ -146,13 +132,14 @@
       measurementId: "G-8XY38GQQ86"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
     let currentUser = null;
 
-    onAuthStateChanged(auth, async (user) => {
+    auth.onAuthStateChanged(async function(user) {
       if (!user) {
         window.location.href = "login.html";
         return;
@@ -180,11 +167,11 @@
     });
 
     async function createEmployeeIfMissing(user) {
-      const employeeRef = doc(db, "employees", user.uid);
-      const employeeSnap = await getDoc(employeeRef);
+      const employeeRef = db.collection("employees").doc(user.uid);
+      const employeeSnap = await employeeRef.get();
 
-      if (!employeeSnap.exists()) {
-        await setDoc(employeeRef, {
+      if (!employeeSnap.exists) {
+        await employeeRef.set({
           email: user.email,
           uid: user.uid,
           createdAt: new Date().toISOString()
@@ -192,25 +179,17 @@
       }
     }
 
-    window.copyQRLink = function () {
-      const input = document.getElementById("qrLink");
-      input.select();
-      input.setSelectionRange(0, 99999);
-      navigator.clipboard.writeText(input.value);
-      alert("QR link copied!");
-    };
-
-    window.refreshStats = async function () {
+    async function refreshStats() {
       if (!currentUser) return;
 
-      const snapshot = await getDocs(collection(db, "stats"));
+      const snapshot = await db.collection("stats").get();
 
       let scans = 0;
       let uniqueScans = 0;
       let copiedReviews = 0;
       let reviewClicks = 0;
 
-      snapshot.forEach((docSnap) => {
+      snapshot.forEach(function(docSnap) {
         const data = docSnap.data();
 
         if (data.employeeId === currentUser.uid) {
@@ -225,13 +204,24 @@
       document.getElementById("uniqueCount").innerText = uniqueScans;
       document.getElementById("copyCount").innerText = copiedReviews;
       document.getElementById("clickCount").innerText = reviewClicks;
-    };
+    }
 
-    window.logout = async function () {
-      await signOut(auth);
+    function copyQRLink() {
+      const input = document.getElementById("qrLink");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value);
+      alert("QR link copied!");
+    }
+
+    async function logout() {
+      await auth.signOut();
       window.location.href = "login.html";
-    };
+    }
 
+    window.refreshStats = refreshStats;
+    window.copyQRLink = copyQRLink;
+    window.logout = logout;
   </script>
 
 </body>
