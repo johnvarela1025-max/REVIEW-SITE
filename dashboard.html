@@ -5,244 +5,280 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f5f5f6;
-      color: #111;
-    }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f6; color: #111; }
+    header { background: #111; color: white; padding: 22px; }
+    main { padding: 22px; max-width: 1200px; margin: auto; }
+    h1 { margin: 0; }
+    .topbar { display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0; }
+    input, select { padding: 12px; border-radius: 10px; border: 1px solid #ccc; min-width: 220px; }
+    button, a.btn { background: #111; color: white; border: 0; padding: 12px 14px; border-radius: 10px; text-decoration: none; font-weight: bold; cursor: pointer; }
 
-    header {
-      background: #111;
-      color: white;
-      padding: 22px;
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 22px 0; }
+    .card { background: white; padding: 20px; border-radius: 18px; box-shadow: 0 10px 25px rgba(0,0,0,.08); }
+    .label { color: #666; font-size: 14px; }
+    .number { font-size: 34px; font-weight: 900; margin-top: 8px; }
 
-    main {
-      padding: 22px;
-      max-width: 1100px;
-      margin: auto;
-    }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,.08); margin-top: 20px; }
+    th, td { padding: 14px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+    th { background: #111; color: white; }
 
-    h1 {
-      margin: 0;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin: 22px 0;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 18px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.08);
-    }
-
-    .number {
-      font-size: 34px;
-      font-weight: 900;
-      margin-top: 8px;
-    }
-
-    .label {
-      color: #666;
-      font-size: 14px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0,0,0,.08);
-    }
-
-    th, td {
-      padding: 14px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    th {
-      background: #111;
-      color: white;
-    }
-
-    .topbar {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin: 18px 0;
-    }
-
-    input {
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      min-width: 240px;
-    }
-
-    button,
-    a.btn {
-      background: #111;
-      color: white;
-      border: 0;
-      padding: 12px 14px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    .section-title { margin-top: 30px; }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <h1>Review SaaS Dashboard</h1>
-    <p>Employee + business tracking</p>
-  </header>
+<header>
+  <h1>ENVISIONED MARKETING Dashboard</h1>
+  <p>Employee review activity by day, week, and month</p>
+</header>
 
-  <main>
+<main>
 
-    <div class="topbar">
-      <input id="filter" placeholder="Filter by employee or business..." oninput="render()" />
-      <button onclick="loadStats()">Refresh Stats</button>
-      <a class="btn" href="admin.html">Manage Businesses</a>
-      <a class="btn" href="index.html?employee=demo">Test Review Page</a>
+  <div class="topbar">
+    <select id="timeFilter" onchange="render()">
+      <option value="today">Today</option>
+      <option value="week">This Week</option>
+      <option value="month">This Month</option>
+      <option value="all">All Logged Activity</option>
+    </select>
+
+    <input id="filter" placeholder="Filter by employee or business..." oninput="render()" />
+
+    <button onclick="loadStats()">Refresh Stats</button>
+    <a class="btn" href="admin.html">Manage Businesses</a>
+    <a class="btn" href="employee.html">Employee Page</a>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Scans</div>
+      <div class="number" id="totalScans">0</div>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="label">Total Scans</div>
-        <div class="number" id="totalScans">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Unique Scans</div>
-        <div class="number" id="totalUnique">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Reviews Copied</div>
-        <div class="number" id="totalCopied">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">Google Clicks</div>
-        <div class="number" id="totalClicks">0</div>
-      </div>
+    <div class="card">
+      <div class="label">Unique Scans</div>
+      <div class="number" id="totalUnique">0</div>
     </div>
 
-    <table>
-      <thead>
+    <div class="card">
+      <div class="label">Reviews Copied</div>
+      <div class="number" id="totalCopied">0</div>
+    </div>
+
+    <div class="card">
+      <div class="label">Google Review Clicks</div>
+      <div class="number" id="totalClicks">0</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Employee Performance</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Employee ID</th>
+        <th>Scans</th>
+        <th>Unique Scans</th>
+        <th>Reviews Copied</th>
+        <th>Google Clicks</th>
+      </tr>
+    </thead>
+    <tbody id="employeeBody"></tbody>
+  </table>
+
+  <h2 class="section-title">Business Performance</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Business</th>
+        <th>Scans</th>
+        <th>Unique Scans</th>
+        <th>Reviews Copied</th>
+        <th>Google Clicks</th>
+      </tr>
+    </thead>
+    <tbody id="businessBody"></tbody>
+  </table>
+
+  <h2 class="section-title">Employee + Business Breakdown</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Employee ID</th>
+        <th>Business</th>
+        <th>Scans</th>
+        <th>Unique Scans</th>
+        <th>Reviews Copied</th>
+        <th>Google Clicks</th>
+      </tr>
+    </thead>
+    <tbody id="breakdownBody"></tbody>
+  </table>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
+    authDomain: "envisionedmktng.firebaseapp.com",
+    projectId: "envisionedmktng",
+    storageBucket: "envisionedmktng.firebasestorage.app",
+    messagingSenderId: "1075132261537",
+    appId: "1:1075132261537:web:2c283114b82d1cee4efce0"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let logs = [];
+
+  function getTodayDate() {
+    return new Date().toISOString().split("T")[0];
+  }
+
+  function getMonthKey() {
+    return new Date().toISOString().slice(0, 7);
+  }
+
+  function getWeekKey() {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), 0, 1);
+    const pastDays = Math.floor((now - firstDay) / 86400000);
+    const weekNumber = Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+    return now.getFullYear() + "-W" + weekNumber;
+  }
+
+  function emptyStats() {
+    return {
+      scans: 0,
+      uniqueScans: 0,
+      copiedReviews: 0,
+      reviewClicks: 0
+    };
+  }
+
+  function countLog(stats, type) {
+    if (type === "scan") stats.scans++;
+    if (type === "uniqueScan") stats.uniqueScans++;
+    if (type === "copy") stats.copiedReviews++;
+    if (type === "googleClick") stats.reviewClicks++;
+  }
+
+  async function loadStats() {
+    const snapshot = await db.collection("activityLogs").get();
+
+    logs = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    render();
+  }
+
+  function getFilteredLogs() {
+    const timeFilter = document.getElementById("timeFilter").value;
+    const search = document.getElementById("filter").value.toLowerCase();
+
+    const todayKey = getTodayDate();
+    const weekKey = getWeekKey();
+    const monthKey = getMonthKey();
+
+    return logs.filter(log => {
+      let matchesTime = true;
+
+      if (timeFilter === "today") matchesTime = log.date === todayKey;
+      if (timeFilter === "week") matchesTime = log.week === weekKey;
+      if (timeFilter === "month") matchesTime = log.month === monthKey;
+      if (timeFilter === "all") matchesTime = true;
+
+      const matchesSearch =
+        String(log.employeeId || "").toLowerCase().includes(search) ||
+        String(log.businessName || "").toLowerCase().includes(search) ||
+        String(log.businessId || "").toLowerCase().includes(search);
+
+      return matchesTime && matchesSearch;
+    });
+  }
+
+  function render() {
+    const filtered = getFilteredLogs();
+
+    const totals = emptyStats();
+    const employees = {};
+    const businesses = {};
+    const breakdown = {};
+
+    filtered.forEach(log => {
+      countLog(totals, log.type);
+
+      const employeeId = log.employeeId || "Unknown Employee";
+      const businessName = log.businessName || log.businessId || "Unknown Business";
+      const businessId = log.businessId || businessName;
+      const breakdownKey = employeeId + "__" + businessId;
+
+      if (!employees[employeeId]) employees[employeeId] = emptyStats();
+      if (!businesses[businessName]) businesses[businessName] = emptyStats();
+      if (!breakdown[breakdownKey]) {
+        breakdown[breakdownKey] = {
+          employeeId,
+          businessName,
+          ...emptyStats()
+        };
+      }
+
+      countLog(employees[employeeId], log.type);
+      countLog(businesses[businessName], log.type);
+      countLog(breakdown[breakdownKey], log.type);
+    });
+
+    document.getElementById("totalScans").innerText = totals.scans;
+    document.getElementById("totalUnique").innerText = totals.uniqueScans;
+    document.getElementById("totalCopied").innerText = totals.copiedReviews;
+    document.getElementById("totalClicks").innerText = totals.reviewClicks;
+
+    document.getElementById("employeeBody").innerHTML =
+      Object.entries(employees).map(([employeeId, s]) => `
         <tr>
-          <th>Employee</th>
-          <th>Business</th>
-          <th>Scans</th>
-          <th>Unique</th>
-          <th>Copied</th>
-          <th>Google Clicks</th>
-          <th>Conversion</th>
+          <td>${employeeId}</td>
+          <td>${s.scans}</td>
+          <td>${s.uniqueScans}</td>
+          <td>${s.copiedReviews}</td>
+          <td>${s.reviewClicks}</td>
         </tr>
-      </thead>
+      `).join("") || `<tr><td colspan="5">No employee activity found.</td></tr>`;
 
-      <tbody id="statsBody"></tbody>
-    </table>
+    document.getElementById("businessBody").innerHTML =
+      Object.entries(businesses).map(([businessName, s]) => `
+        <tr>
+          <td>${businessName}</td>
+          <td>${s.scans}</td>
+          <td>${s.uniqueScans}</td>
+          <td>${s.copiedReviews}</td>
+          <td>${s.reviewClicks}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="5">No business activity found.</td></tr>`;
 
-  </main>
+    document.getElementById("breakdownBody").innerHTML =
+      Object.values(breakdown).map(row => `
+        <tr>
+          <td>${row.employeeId}</td>
+          <td>${row.businessName}</td>
+          <td>${row.scans}</td>
+          <td>${row.uniqueScans}</td>
+          <td>${row.copiedReviews}</td>
+          <td>${row.reviewClicks}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="6">No breakdown activity found.</td></tr>`;
+  }
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-    import {
-      getFirestore,
-      collection,
-      getDocs
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAgzDPYlzuht6cFbWGUQgPiHWHkyG-y3yw",
-      authDomain: "envisionedmktng.firebaseapp.com",
-      projectId: "envisionedmktng",
-      storageBucket: "envisionedmktng.firebasestorage.app",
-      messagingSenderId: "1075132261537",
-      appId: "1:1075132261537:web:2c283114b82d1cee4efce0"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    let rows = [];
-
-    function n(value) {
-      return Number(value || 0);
-    }
-
-    window.loadStats = async function () {
-      const snap = await getDocs(collection(db, "stats"));
-
-      rows = snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      }));
-
-      render();
-    };
-
-    window.render = function () {
-      const filter = document.getElementById("filter").value.toLowerCase();
-
-      const filtered = rows.filter(r =>
-        String(r.employeeId || "").toLowerCase().includes(filter) ||
-        String(r.businessName || "").toLowerCase().includes(filter)
-      );
-
-      const totals = filtered.reduce((a, r) => {
-        a.scans += n(r.scans);
-        a.unique += n(r.uniqueScans);
-        a.copied += n(r.copiedReviews);
-        a.clicks += n(r.reviewClicks);
-        return a;
-      }, {
-        scans: 0,
-        unique: 0,
-        copied: 0,
-        clicks: 0
-      });
-
-      document.getElementById("totalScans").innerText = totals.scans;
-      document.getElementById("totalUnique").innerText = totals.unique;
-      document.getElementById("totalCopied").innerText = totals.copied;
-      document.getElementById("totalClicks").innerText = totals.clicks;
-
-      document.getElementById("statsBody").innerHTML = filtered.map(r => {
-        const scans = n(r.scans);
-        const clicks = n(r.reviewClicks);
-        const conversion = scans ? Math.round((clicks / scans) * 100) + "%" : "0%";
-
-        return `
-          <tr>
-            <td>${r.employeeId || ""}</td>
-            <td>${r.businessName || r.businessId || ""}</td>
-            <td>${n(r.scans)}</td>
-            <td>${n(r.uniqueScans)}</td>
-            <td>${n(r.copiedReviews)}</td>
-            <td>${n(r.reviewClicks)}</td>
-            <td>${conversion}</td>
-          </tr>
-        `;
-      }).join("");
-    };
-
-    loadStats();
-  </script>
+  loadStats();
+</script>
 
 </body>
 </html>
